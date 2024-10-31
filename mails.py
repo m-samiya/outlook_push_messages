@@ -6,11 +6,14 @@ import requests
 # Load environment variables from .env
 load_dotenv()
 
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-TENANT_ID = os.getenv("TENANT_ID")
-AUTHORITY = os.getenv("AUTHORITY")
-SCOPE = ["https://graph.microsoft.com/.default"]
+# Set up environment variables
+CLIENT_ID=os.getenv("CLIENT_ID")
+CLIENT_SECRET=os.getenv("CLIENT_SECRET")
+TENANT_ID=os.getenv("TENANT_ID")
+# Ensure AUTHORITY has the correct format using the TENANT_ID
+AUTHORITY = f"https://login.microsoftonline.com/{TENANT_ID}"
+SCOPE = ["https://graph.microsoft.com/.default"] 
+
 
 # Authenticate using MSAL
 app = msal.ConfidentialClientApplication(
@@ -27,9 +30,9 @@ if access_token:
     print("Access token acquired successfully.")
 else:
     print("Failed to acquire token.")
-    print(result.get("error"))  # Print the error code
-    print(result.get("error_description"))  # Print a more detailed error message
-    print(result.get("correlation_id"))  # Print the correlation ID for further investigation
+    print(result.get("error"))
+    print(result.get("error_description"))
+    print(result.get("correlation_id"))
     exit()
 
 # Define the function to create an email message
@@ -51,19 +54,20 @@ def create_email_message(recipient, subject, body_content):
         }
     }
 
-# Define the function to send the email
-# Define the function to send the email using the correct endpoint
+# Function to send the email
 def send_email(access_token, user_id, recipient, subject, body_content):
     email_message = create_email_message(recipient, subject, body_content)
     headers = {
         'Authorization': f'Bearer {access_token}',
         'Content-Type': 'application/json'
     }
+    # Sending email request
     response = requests.post(
         f'https://graph.microsoft.com/v1.0/users/{user_id}/sendMail',
         headers=headers,
         json=email_message
     )
+    # Response handling
     if response.status_code == 202:
         print("Email sent successfully!")
     else:
@@ -71,10 +75,9 @@ def send_email(access_token, user_id, recipient, subject, body_content):
 
 # Test sending an email
 if __name__ == "__main__":
-    user_id = "anudeep@raghuamberflux.onmicrosoft.com"  # Replace with the user's email address
-    recipient = "anudeep@raghuamberflux.onmicrosoft.com"
+    user_id = "ausaaf@amberflux.in"  # Ensure this is a valid UPN or User ID in Azure AD
+    recipient = "ausaaf@amberflux.in"
     subject = "Test Email"
     body_content = "This is a test email sent using Microsoft Graph API."
     send_email(access_token, user_id, recipient, subject, body_content)
-
 
